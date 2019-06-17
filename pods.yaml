@@ -3,8 +3,17 @@ kind: Pod
 metadata:
   name: k8-nginx
   labels:
-    name: k8-nginx
+    app: k8-nginx
+    color: red
+    type: webserver
+  annotations:
+    imageregistry: https://hub.docker.com/poPath
+    version: v1
 spec:
+  volumes:
+    - name: nginx-data
+      hostPath:
+        path: "/Users/emadnajeeb/Documents/development/k8s-practice/tmp"
   containers:
   - name: nginx-ctr
     image: nginx
@@ -14,3 +23,14 @@ spec:
         cpu: "500m"
     ports:
       - containerPort: 80
+    volumeMounts:
+      - mountPath: "/tmp"
+        name: nginx-data
+    livenessProbe:
+      httpGet:
+        path: /
+        port: 80
+      initialDelaySeconds: 5
+      timeoutSeconds: 1
+      periodSeconds: 10
+      failureThreshold: 3

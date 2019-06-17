@@ -1,6 +1,15 @@
 # k8s-practice
 Kubernetes practice
 
+## Misc
+```
+# get all namespaces
+kubectl get ns
+
+# get pods in kubernetes ns
+kubectl get pods -n kube-system
+```
+
 ## PODS
 ```
 # run one nginx pod (imperative)
@@ -45,6 +54,8 @@ kubectl get pods -o custom-columns=NAME:.metadata.name
 
 kubectl get all
 
+kubectl scale --replicas=5 rs/k8-nginx-rc
+
 kubectl delete -f replication-controller.yaml
 ```
 ## Service
@@ -53,6 +64,13 @@ kubectl delete -f replication-controller.yaml
 kubectl expose rc k8-nginx-rc --name=k8-nginx-svc --port=80 --target-port=80 --type=NodePort --dry-run=true
 
 kubectl describe svc k8-nginx-svc
+
+export NODE_PORT=$(kubectl get services/k8-nginx-svc -o go-template='{{(index .spec.ports 0).nodePort}}')
+echo NODE_PORT=$NODE_PORT
+
+# test service using
+# http://localhost:$NODE_PORT
+
 ```
 
 ## Deployment
@@ -67,4 +85,28 @@ kubectl delete pods,services -l app=nginx
 kubectl describe deployments
 kubectl rollout status deployment.apps/nginx-deployment
 kubectl get deployment.apps/nginx-deployment -o yaml
+
+# old way
+kubectl run --generator=deployment/v1beta1 nginx --image=nginx -o yaml --dry-run=true
+
+# new way
+kubectl create deployment nginx --image=nginx:1.16 -o yaml --dry-run=true
+kubectl scale --replicas=5 deployment/nginx
+```
+
+## Namespace
+```
+kubectl get namespaces
+kubectl get pods --all-namespaces
+kubectl get pods --namespace=default
+
+# switch to namespace
+kubectl config set-context $(kubectl config current-context) --namespace=kube-system
+# start using context
+kubectl config use-context kube-system
+```
+
+## Machine setup
+```
+alias k='kubectl'
 ```
