@@ -7,14 +7,23 @@ spec:
   selector:
     matchLabels:
       app: k8-nginx
+  # We do daily rollouts, limit the revision history to two weeks of
+  # releases as we don't expect to roll back beyond that.
+  revisionHistoryLimit: 14
+  # Rollout fails to progress in 10 minutes, then the Deployment is marked as failed
+  progressDeadlineSeconds: 600
   template:
     metadata:
       labels:
         app: k8-nginx
+      annotations:
+        # CHANGE-CAUSE is display in rollout history
+        kubernetes.io/change-cause: "Update nginx image to 1.17"
     spec:
       containers:
       - name: k8-nginx
-        image: nginx
+        image: nginx:1.17
+        imagePullPolicy: Always
         # resources:
         #   limits:
         #     memory: "128Mi"

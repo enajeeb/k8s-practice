@@ -8,7 +8,7 @@
 * Udemy Course
   * [ ] https://www.udemy.com/certified-kubernetes-administrator-with-practice-tests/
 * Kubernetes Up and Running Book
-  * [ ] https://go.heptio.com/rs/383-ENX-437/images/Kubernetes_Up_and_Running.pdf?mkt_tok=eyJpIjoiTXpKalpHSTRabUk0WmpOaSIsInQiOiJqekdpSFc0WXRHYlpJMWdQeFpiOGtqXC8yUEo2VVwvV0JVYllMWjhYb1YyVEI3RTlNYnl5NnFyK3cwQ1YyK2J5Y2ZoQ1wvbU5wNmp3WWllWnI3eUNjRTFkK1N4NU52UHo5ZGRlZFJHRjIxTVwvZHVcL0Fab0RNR3Q1RjVxRWZHZG1ZYTNkIn0%3D
+  * [x] https://go.heptio.com/rs/383-ENX-437/images/Kubernetes_Up_and_Running.pdf?mkt_tok=eyJpIjoiTXpKalpHSTRabUk0WmpOaSIsInQiOiJqekdpSFc0WXRHYlpJMWdQeFpiOGtqXC8yUEo2VVwvV0JVYllMWjhYb1YyVEI3RTlNYnl5NnFyK3cwQ1YyK2J5Y2ZoQ1wvbU5wNmp3WWllWnI3eUNjRTFkK1N4NU52UHo5ZGRlZFJHRjIxTVwvZHVcL0Fab0RNR3Q1RjVxRWZHZG1ZYTNkIn0%3D
 * Review Curriculum 
   * [ ] https://github.com/cncf/curriculum
 * kubernetes.io
@@ -21,8 +21,8 @@
   * [ ] https://github.com/kelseyhightower/kubernetes-the-hard-way/blob/master/README.md
   * [ ] https://github.com/walidshaari/Kubernetes-Certified-Administrator/blob/master/README.md
 
-## Tasks
-### Start pod and tie with service
+## Practice Tasks
+1. Start pod and tie with service
 ```
 kubectl run nginx --image=nginx:1.16 --labels="app=frontend,color=blue"
 kubectl create service nodeport nginx --tcp=80:80 --node-port=30080
@@ -32,6 +32,7 @@ kubectl edit service nginx
 # test
 curl http://localhost:30080
 ```
+2. Create clustor
 
 ## Reference
 ### Generators
@@ -46,6 +47,9 @@ kubectl run --generator=run-pod/v1 redis --image=redis:alpine --labels=tier=db
 # find pods with label bu=finance
 kubectl get pods --selector bu=finance
 kubectl get all --selector env=prod,bu=finance,tier=frontend
+
+# show labels
+kubectl get pods -o wide --show-labels
 
 # without header
 kubectl get pods -o wide --no-headers
@@ -97,11 +101,39 @@ kubectl run nginx --generator=deployment/v1beta1 --image=nginx:1.16 --labels=app
 # new way
 kubectl create deployment nginx-test --image=nginx:1.16 -o yaml --dry-run=true
 kubectl scale --replicas=5 deployment.apps/nginx
+
+# export with clustor information stripped
+kubectl get deployment.apps/nginx --export -o yaml > nginx-deployment.yaml
+
+# rollout
+kubectl rollout history deployment.apps/nginx
+kubectl rollout history deployment.apps/nginx --revision=1
+
+kubectl rollout status deployment.apps/nginx
+
+kubectl rollout pause deployment.apps/nginx
+kubectl rollout resume deployment.apps/nginx
+
+kubectl rollout undo deployment nginx
+kubectl rollout undo deployment nginx --to-revision=1
 ```
 ### Service
 ```
 kubectl create service clusterip redis --tcp=6379:6379 --dry-run -o yaml
 kubectl create service nodeport nginx --tcp=80:80 --node-port=30080 --dry-run -o yaml
+
+kubectl create service loadbalancer nginx --tcp:80:80
+```
+
+### Endpoints
+```
+kubectl get endpoints <service-name>
+kubectl get endpoints nginx
+
+kubectl describe endpoints nginx
+
+# use scale replicas to watch new endpoints being added
+kubectl get endpoints nginx --watch
 ```
 
 ### Namespace
