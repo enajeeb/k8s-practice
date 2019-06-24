@@ -34,3 +34,19 @@ spec:
       timeoutSeconds: 1
       periodSeconds: 10
       failureThreshold: 3
+    env:
+      - name: SECRET_USERNAME
+        valueFrom:
+          secretKeyRef:
+            name: db-secret
+            key: DB_User
+      - name: SECRET_PASSWORD
+        valueFrom:
+          secretKeyRef:
+            name: db-secret
+            key: DB_Password
+      - name: SECRET_HOST
+        valueFrom:
+          secretKeyRef:
+            name: db-secret
+            key: DB_Host

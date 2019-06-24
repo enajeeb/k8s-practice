@@ -34,6 +34,10 @@ curl http://localhost:30080
 ```
 2. Create clustor
 
+## Weak Topics
+* Static Pods
+* Custom Scheduler
+
 ## Reference
 ### Generators
 * https://kubernetes.io/docs/reference/kubectl/conventions/
@@ -58,6 +62,10 @@ kubectl get pods -o wide --no-headers
 kubectl get pods -o go-template --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}'
 kubectl get pods -o custom-columns=NAME:.metadata.name
 kubectl get pods -o=jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.status.podIP}{"\n"}{end}'
+
+# static pod
+kubectl run --restart=Never --image=busybox static-busybox --dry-run -o yaml --command -- sleep 1000 > /etc/kubernetes/manifests/static-busybox.yaml
+kubectl create -f /etc/kubernetes/manifests/static-busybox.yaml
 ```
 
 #### Port forward
@@ -177,4 +185,34 @@ kubectl annotate pods k8-nginx version=v2 --overwrite
 
 # remove label
 kubectl label pods k8-nginx color-
+```
+
+### Metrics Server
+```
+git clone https://github.com/kubernetes-incubator/metrics-server.git
+cd metrics-server/deploy/1.8+
+kubectl apply -f .
+kubectl top node
+kubectl top pod
+```
+
+### ConfigMaps
+```
+kubectl create configmap my-config --from-literal=APP_COLOR=blue \
+                                   --from-literal=APP_ENV=dev
+
+kubectl get configmap
+kubectl describe configmap my-config
+
+kubectl create configmap my-file-config --from-file=config.properties
+```
+
+### Secrets
+```
+kubectl create secret generic db-secret --from-literal=DB_Host=sql01 --from-literal=DB_User=root --from-literal=DB_Password=password123
+
+kubectl describe secret db-secret
+
+# display base64 values 
+kubectl get secret db-secret -o yaml
 ```

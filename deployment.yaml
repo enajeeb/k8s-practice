@@ -30,3 +30,9 @@ spec:
         #     cpu: "500m"
         ports:
         - containerPort: 80
+        env:
+          - name: APP_COLOR
+            valueFrom:
+              configMapKeyRef:
+                key: APP_COLOR
+                name: APP_COLOR
