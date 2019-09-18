@@ -42,6 +42,27 @@ curl http://localhost:30080
 ### Generators
 * https://kubernetes.io/docs/reference/kubectl/conventions/
 
+### Nodes
+```
+# get node names
+kubectl get nodes --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}' | sort -u
+kubectl get nodes -o jsonpath='{.items[*].metadata.name}'
+```
+```
+# cordon
+kubectl get nodes | awk '{print $1;}' | tail -20 | xargs kubectl cordon
+
+# drain
+kubectl drain --force --ignore-daemonsets --delete-local-data rd17d12ls-ztda09115201 --grace-period=-1 --timeout=1800s
+
+# custom-columns
+kubectl get pods -n default -o custom-columns=Node:.spec.nodeName | sort -u
+
+# get master and worker nodes
+kubectl get nodes -l node-role.kubernetes.io/master=true
+kubectl get nodes -l node-role.kubernetes.io/node=true
+```
+
 ### Pods
 ```
 # deploy a pod
@@ -62,10 +83,13 @@ kubectl get pods -o wide --no-headers
 kubectl get pods -o go-template --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}'
 kubectl get pods -o custom-columns=NAME:.metadata.name
 kubectl get pods -o=jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.status.podIP}{"\n"}{end}'
+kubectl get pods -n weyland-k8s-service-pool-1 -o custom-columns=NODE:.spec.nodeName --no-headers | sort -u
 
 # static pod
 kubectl run --restart=Never --image=busybox static-busybox --dry-run -o yaml --command -- sleep 1000 > /etc/kubernetes/manifests/static-busybox.yaml
 kubectl create -f /etc/kubernetes/manifests/static-busybox.yaml
+
+kubectl get pods --all-namespaces --field-selector=spec.nodeName=mr36d01ls-geo06113201 --watch
 ```
 
 #### Port forward
@@ -81,6 +105,12 @@ kubectl proxy
 
 # proxy to pod
 http://localhost:8001/api/v1/namespaces/default/pods/k8-nginx-59ff48f654-ww24h/proxy/
+
+# interact with current cluster
+kubectl config current-context
+kube proxy
+curl -k http://localhost:8001/version
+
 ```
 
 #### Logs
@@ -124,6 +154,11 @@ kubectl rollout resume deployment.apps/nginx
 
 kubectl rollout undo deployment nginx
 kubectl rollout undo deployment nginx --to-revision=1
+
+# update image of running deployment
+kubectl set image deployment/<deployment-name> <container-name>=<repository>/<image>:<tag>
+kubectl set image deployment/web web=myprivateregistry.com:5000/nginx:alpine
+kubectl rollout status -w deployment/<deployment-name>
 ```
 ### Service
 ```
@@ -150,6 +185,9 @@ kubectl get namespaces
 kubectl get pods --all-namespaces
 kubectl get pods --namespace=default
 
+kubectl config view
+kubectl config --kubeconfig=<config-file-path> use-context <context-name>
+
 # get current context
 kubectl config current-context
 
@@ -157,6 +195,12 @@ kubectl config current-context
 kubectl config set-context $(kubectl config current-context) --namespace=kube-system
 # start using context
 kubectl config use-context kube-system
+
+kubectl api-resources --namespaced=false
+kubectl api-resources --namespaced=true
+
+# get ns quota
+kubectl describe quota -n weyland-k8s-service-pool-1
 ```
 
 ### Labels & Annotations
@@ -216,3 +260,49 @@ kubectl describe secret db-secret
 # display base64 values 
 kubectl get secret db-secret -o yaml
 ```
+
+### RBAC
+```
+kubectl get roles
+kubectl auth can-i create deployments
+kubectl auth can-i delete nodes
+
+kubectl auth can-i create deployments --as dev-user
+kubectl auth can-i get pod --namespace=default --as dev-user
+
+# check authorizaton scheme
+kubectl describe pod/kube-apiserver-master  --namespace=kube-system | grep authorization
+
+# get all roles
+kubectl get roles --all-namespaces --no-headers | wc -l
+
+# get details of a role
+kubectl describe role/weave-net --namespace=kube-system
+
+# get details of role binding
+kubectl describe rolebinding/weave-net -n kube-system
+```
+
+### Cluster Roles
+```
+# get all cluster roles
+kubectl get clusterroles --no-headers | wc -l
+
+# get all cluster role bindings
+kubectl get clusterrolebindings --no-headers | wc -l
+```
+
+### ETCD
+#### Commands
+```
+# user v3
+export ETCDCTL_API=3
+
+etcdctl put name john
+etcdctl get name
+
+# get all keys
+etcdctl get / --prefix --keys-only
+```
+#### Quorum
+N/2 + 1

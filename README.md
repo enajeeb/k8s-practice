@@ -104,6 +104,30 @@ kubectl get pods --namespace=default
 kubectl config set-context $(kubectl config current-context) --namespace=kube-system
 # start using context
 kubectl config use-context kube-system
+
+kubectl config get-contexts
+```
+
+## Certificates
+* https://kubernetes.io/docs/setup/best-practices/certificates/
+
+```
+# view location of certificates
+cat /etc/kubernetes/manifests/kube-apiserver.yaml
+
+# view cert details
+openssl x509 -in /etc/kubernetes/pki/apiserver.crt -text -noout
+
+# debugging
+journalctl -u etcd.service -l
+
+# Sign a new certificate for the apiserver-etcd-client
+openssl x509 -req -in /etc/kubernetes/pki/apiserver-etcd-client.csr -CA /etc/kubernetes/pki/etcd/ca.crt -CAkey /etc/kubernetes/pki/etcd/ca.key -CAcreateserial -out /etc/kubernetes/pki/apiserver-etcd-client.crt
+
+# local key
+openssl genrsa -out emad.key 2048
+openssl req -new -key emad.key -subj "/CN=emad" -out emad.csr
+
 ```
 
 ## Machine setup

@@ -1,0 +1,77 @@
+version: '3'
+services:
+  master1:
+    container_name: k8s-master1
+    image: local/k8s-base
+    expose:
+     - 6443
+    networks:
+      k8s_net:
+        ipv4_address: 172.27.0.3
+    # deploy:
+    #   resources:
+    #     limits:
+    #       cpus: '0.50'
+    #       memory: 50M
+    #     reservations:
+    #       cpus: '0.25'
+    #       memory: 20M
+  master2:
+    container_name: k8s-master2
+    image: local/k8s-base
+    expose:
+     - 6443
+    networks:
+      k8s_net:
+        ipv4_address: 172.27.0.4
+  master3:
+    container_name: k8s-master3
+    image: local/k8s-base
+    expose:
+     - 6443
+    networks:
+      k8s_net:
+        ipv4_address: 172.27.0.5
+  worker1:
+    container_name: k8s-worker1
+    image: local/k8s-base
+    networks:
+      k8s_net:
+        ipv4_address: 172.27.0.6
+  worker2:
+    container_name: k8s-worker2
+    image: local/k8s-base
+    networks:
+      k8s_net:
+        ipv4_address: 172.27.0.7
+  # web1:
+  #   image: nginx
+  #   expose:
+  #     - 80
+  #   networks:
+  #     k8s_net:
+  #       ipv4_address: 172.27.0.3
+  # web2:
+  #   image: nginx
+  #   expose:
+  #     - 80
+  #   networks:
+  #     k8s_net:
+  #       ipv4_address: 172.27.0.4
+  lb:
+    container_name: k8s-master-lb
+    image: dockercloud/haproxy
+    links:
+      - master1
+      - master2
+      - master3
+    ports:
+      - '6443:6443'
+    networks:
+      k8s_net:
+        ipv4_address: 172.27.0.2
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+networks:
+  k8s_net:
+    external: true
