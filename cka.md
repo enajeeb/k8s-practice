@@ -41,6 +41,7 @@ curl http://localhost:30080
 ## Reference
 ### Generators
 * https://kubernetes.io/docs/reference/kubectl/conventions/
+* https://kubernetes.io/docs/reference/generated/kubectl/kubectl-commands
 
 ### Nodes
 ```
@@ -61,6 +62,9 @@ kubectl get pods -n default -o custom-columns=Node:.spec.nodeName | sort -u
 # get master and worker nodes
 kubectl get nodes -l node-role.kubernetes.io/master=true
 kubectl get nodes -l node-role.kubernetes.io/node=true
+
+# resource allocations
+kubectl describe $(kubectl get node <nodename> -o name) | grep -A 6 Allocated
 ```
 
 ### Pods
@@ -156,8 +160,8 @@ kubectl rollout undo deployment nginx
 kubectl rollout undo deployment nginx --to-revision=1
 
 # update image of running deployment
-kubectl set image deployment/<deployment-name> <container-name>=<repository>/<image>:<tag>
-kubectl set image deployment/web web=myprivateregistry.com:5000/nginx:alpine
+kubectl set image deployment/<deployment-name> <container-name>=<repository>/<image>:<tag> --record
+kubectl set image deployment/web web=myprivateregistry.com:5000/nginx:alpine --record
 kubectl rollout status -w deployment/<deployment-name>
 ```
 ### Service
@@ -290,6 +294,11 @@ kubectl get clusterroles --no-headers | wc -l
 
 # get all cluster role bindings
 kubectl get clusterrolebindings --no-headers | wc -l
+```
+
+### Events
+```
+kubectl get events --sort-by=.metadata.creationTimestamp | grep <search>
 ```
 
 ### ETCD
