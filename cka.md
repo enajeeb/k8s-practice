@@ -65,6 +65,9 @@ kubectl get nodes -l node-role.kubernetes.io/node=true
 
 # resource allocations
 kubectl describe $(kubectl get node <nodename> -o name) | grep -A 6 Allocated
+
+# get taints on nodes
+kubectl get nodes -l proxytype=traefik -o=jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.spec.taints[*]}{"\n"}{end}'
 ```
 
 ### Pods
@@ -94,6 +97,16 @@ kubectl run --restart=Never --image=busybox static-busybox --dry-run -o yaml --c
 kubectl create -f /etc/kubernetes/manifests/static-busybox.yaml
 
 kubectl get pods --all-namespaces --field-selector=spec.nodeName=mr36d01ls-geo06113201 --watch
+
+# Get all pod resources on running on a specific node
+# https://gist.github.com/so0k/42313dbb3b547a0f51a547bb968696ba
+
+kubectl --kubeconfig pv50-kryptonite.config get pods -A --field-selector spec.nodeName=pv33d01ls-ztbu02011801 -w
+
+kubectl --kubeconfig pv50-kryptonite.config get pods -n eval-neutron-pipeline-qa --field-selector spec.nodeName=pv33d01ls-ztbu02011801 -o json | jq -r '.items[] | .metadata.name + " \n Req. RAM: " + .spec.containers[].resources.requests.memory + " \n Lim. RAM: " + .spec.containers[].resources.limits.memory + " \n Req. CPU: " + .spec.containers[].resources.requests.cpu + " \n Lim. CPU: " + .spec.containers[].resources.limits.cpu + " \n Req. Eph. DISK: " + .spec.containers[].resources.requests["ephemeral-storage"] + " \n Lim. Eph. DISK: " + .spec.containers[].resources.limits["ephemeral-storage"] + "\n"'
+
+# requested cpu on that node
+kubectl --kubeconfig pv50-kryptonite.config get pods -A --field-selector spec.nodeName=pv33d01ls-ztbu02011801 -o json | jq -r '.items[] | "Req. CPU: " + .spec.containers[].resources.requests.cpu' | awk '{print $3}'
 ```
 
 #### Port forward
